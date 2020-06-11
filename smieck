@@ -1,0 +1,73 @@
+import hashlib
+plaintext = [0x656b696c, 0x20646e75]
+key = [0x11111111, 0x11111111, 0x11111111, 0x11111111]
+ciphertext = [0] * 2
+t = [0] * 47
+k = [0] * 45
+tmp = [0] * 2
+z1 = "111111000001000011000101001111010001110010010110111011001101010"
+C = 0xfffffffc
+
+
+def rol(a, n):
+    a = (a >> (32 - n)) | (a << n & 4294967295 )
+    return a
+
+def fun(a):
+    a = a & rol(a, 5) ^ rol(a, 1)
+    return a
+
+def findz(i):
+    if (z1[i]=='1'):
+        return 1
+    elif (z1[i]=='0'):
+        return 0
+
+def roundfuction():
+    tmp[0]=plaintext[0]
+    tmp[1]=plaintext[1]
+    for i in range(0,44):
+        ciphertext[0]=tmp[1]^fun(tmp[0])^k[i]
+        ciphertext[1] = tmp[0]
+        tmp[0] = ciphertext[0]
+        tmp[1] = ciphertext[1]
+
+def keyexpansion():
+    t[0] = key[2]
+    t[1] = key[1]
+    t[2] = key[0]
+    k[0] = key[3]
+    k[1] = t[0]
+    k[2] = t[1]
+    k[3] = t[2]
+    for i in range(0,41):
+        t[i + 3] = k[i] ^ fun(t[i]) ^ C ^ findz(i)
+        k[i+4]=t[i+3]
+
+def reroundfuction():
+    tmp[0]=ciphertext[0]
+    tmp[1]=ciphertext[1]
+    for i in range(43,-1):
+        plaintext[1]=tmp[1]^fun(tmp[0])^k[i]
+        plaintext[0] = tmp[0]
+        tmp[0] = plaintext[0]
+        tmp[1] = plaintext[1]
+
+
+def main():
+    keyexpansion()
+    roundfuction()
+    i = [hex(int (j)) for j in k]
+    print(" ".join(i))
+    print
+    m =[hex(int (j)) for j in ciphertext]
+    print(" ".join(m))
+    reroundfuction()
+    n = [hex(int(j)) for j in plaintext]
+    print(" ".join(n))
+
+
+
+if __name__ == "__main__":
+
+    main()
